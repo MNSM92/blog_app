@@ -6,11 +6,39 @@ import { allBlogs } from "contentlayer/generated";
 import { slug } from "github-slugger";
 import Image from "next/image";
 
-export async function generateStaticParams() {
-  return allBlogs.map((blog) => ({ slug: blog._raw.flattenedPath }));
+interface Blog {
+  title: string;
+  description: string;
+  _raw: {
+    flattenedPath: string;
+  };
+  publishedAt: string;
+  updatedAt?: string;
+  image: {
+    filePath: string;
+    relativeFilePath: string;
+    format: string;
+    height: number;
+    width: number;
+    blurhashDataUrl: string;
+  };
+  author: string;
+  url: string;
+  tags: string[]
+  toc: {
+    level: string;
+    text: string;
+    slug: string;
+  }[]
 }
 
-export async function generateMetadata({ params }) {
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  const slugs = allBlogs.map((blog) => ({ slug: blog._raw.flattenedPath }));
+
+  return slugs;
+}
+
+export async function generateMetadata({ params }: { params: { slug: string } }) {
   const blog = allBlogs.find((blog) => blog._raw.flattenedPath === params.slug);
   if (!blog) {
     return;
@@ -19,18 +47,18 @@ export async function generateMetadata({ params }) {
   const publishedAt = new Date(blog.publishedAt).toISOString();
   const modifiedAt = new Date(blog.updatedAt || blog.publishedAt).toISOString();
 
-  let imageList = [siteMetadata.socialBanner];
+  let imageList: string[] = [siteMetadata.socialBanner];
   if (blog.image) {
     imageList =
-      typeof blog.image.filePath === "string"
-        ? [siteMetadata.siteUrl + blog.image.filePath.replace("../public", "")]
-        : blog.image;
+      typeof blog.image.filePath === 'string'
+        ? [siteMetadata.siteUrl + blog.image.filePath.replace('../public', '')]
+        : blog.image.filePath;
   }
   const ogImages = imageList.map((img) => {
-    return { url: img.includes("http") ? img : siteMetadata.siteUrl + img };
+    return { url: img.includes('http') ? img : siteMetadata.siteUrl + img };
   });
 
-  const authors = blog?.author ? [blog.author] : siteMetadata.author;
+  const authors = blog?.author ? [blog.author] : [siteMetadata.author];
 
   return {
     title: blog.title,
@@ -40,15 +68,15 @@ export async function generateMetadata({ params }) {
       description: blog.description,
       url: siteMetadata.siteUrl + blog.url,
       siteName: siteMetadata.title,
-      locale: "en_US",
-      type: "article",
+      locale: 'en_US',
+      type: 'article',
       publishedTime: publishedAt,
       modifiedTime: modifiedAt,
       images: ogImages,
       authors: authors.length > 0 ? authors : [siteMetadata.author],
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title: blog.title,
       description: blog.description,
       images: ogImages,
@@ -56,31 +84,60 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default function BlogPage({ params }) {
-  const blog = allBlogs.find((blog) => blog._raw.flattenedPath === params.slug);
+interface BlogPageProps {
+  params: { slug: string };
 
-  let imageList = [siteMetadata.socialBanner];
-  if (blog.image) {
-    imageList =
-      typeof blog.image.filePath === "string"
-        ? [siteMetadata.siteUrl + blog.image.filePath.replace("../public", "")]
-        : blog.image;
+}
+
+interface JsonLdAuthor {
+  "@type": "Person";
+  "name": string[];
+  "url": string;
+}
+
+interface JsonLd {
+  "@context": string;
+  "@type": string;
+  "headline": string;
+  "description": string;
+  "image": string[];
+  "datePublished": string;
+  "dateModified": string;
+  "author": JsonLdAuthor[];
+}
+
+export default function BlogPage({ params }: BlogPageProps) {
+
+  const blog: any = allBlogs.find((blog) => blog._raw.flattenedPath === params.slug);
+
+  if (!blog) {
+    return <div>Blog not found</div>;
   }
 
-  const jsonLd = {
+  let imageList: string[] = [siteMetadata.socialBanner];
+  if (blog?.image) {
+    imageList =
+      typeof blog.image.filePath === 'string'
+        ? [siteMetadata.siteUrl + blog.image.filePath.replace('../public', '')]
+        : blog.image.filePath;
+  }
+
+  const jsonLd: JsonLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
-    "headline": blog.title,
-    "description": blog.description,
+    "headline": blog?.title || '',
+    "description": blog?.description || '',
     "image": imageList,
-    "datePublished": new Date(blog.publishedAt).toISOString(),
-    "dateModified": new Date(blog.updatedAt || blog.publishedAt).toISOString(),
-    "author": [{
+    "datePublished": blog ? new Date(blog.publishedAt).toISOString() : '',
+    "dateModified": blog ? new Date(blog.updatedAt || blog.publishedAt).toISOString() : '',
+    "author": [
+      {
         "@type": "Person",
-        "name": blog?.author ? [blog.author] : siteMetadata.author,
+        "name": blog?.author ? [blog.author] : [siteMetadata.author],
         "url": siteMetadata.twitter,
-      }]
-  }
+      },
+    ],
+  };
 
   return (
     <>
@@ -127,7 +184,7 @@ export default function BlogPage({ params }) {
               Table Of Content
             </summary>
             <ul className="mt-4 font-in text-base">
-              {blog.toc.map((heading) => {
+              {blog.toc.map((heading: {level: string; slug: string; text: string}) => {
                 return (
                   <li key={`#${heading.slug}`} className="py-1">
                     <a
@@ -158,6 +215,6 @@ export default function BlogPage({ params }) {
       </div>
     </article>
     </>
-   
+
   );
 }

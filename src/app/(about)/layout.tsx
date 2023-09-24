@@ -11,11 +11,14 @@ const insights = [
     "Recipient of the Hackernoon Noonies Award 🏆",
   ];
 
-export default function AboutLayout({ children }) {
+
+const AboutLayout = ({ children }: {children: React.ReactNode}): JSX.Element => {
   return (
     <main className="w-full flex flex-col items-center justify-between">
       <InsightRoll insights={insights} />
       {children}
     </main>
   );
-}
+};
+
+export default AboutLayout;
