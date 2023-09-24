@@ -5,32 +5,8 @@ import siteMetadata from "@/src/utils/siteMetaData";
 import { allBlogs } from "contentlayer/generated";
 import { slug } from "github-slugger";
 import Image from "next/image";
+import {type Blog, type BlogPageProps, type JsonLd, type JsonLdAuthor} from '@/src/interface'
 
-interface Blog {
-  title: string;
-  description: string;
-  _raw: {
-    flattenedPath: string;
-  };
-  publishedAt: string;
-  updatedAt?: string;
-  image: {
-    filePath: string;
-    relativeFilePath: string;
-    format: string;
-    height: number;
-    width: number;
-    blurhashDataUrl: string;
-  };
-  author: string;
-  url: string;
-  tags: string[]
-  toc: {
-    level: string;
-    text: string;
-    slug: string;
-  }[]
-}
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const slugs = allBlogs.map((blog) => ({ slug: blog._raw.flattenedPath }));
@@ -84,35 +60,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-interface BlogPageProps {
-  params: { slug: string };
 
-}
-
-interface JsonLdAuthor {
-  "@type": "Person";
-  "name": string[];
-  "url": string;
-}
-
-interface JsonLd {
-  "@context": string;
-  "@type": string;
-  "headline": string;
-  "description": string;
-  "image": string[];
-  "datePublished": string;
-  "dateModified": string;
-  "author": JsonLdAuthor[];
-}
 
 export default function BlogPage({ params }: BlogPageProps) {
 
-  const blog: any = allBlogs.find((blog) => blog._raw.flattenedPath === params.slug);
+  const blog_raw = allBlogs.find((blog) => blog._raw.flattenedPath === params.slug);
 
-  if (!blog) {
+  if (!blog_raw) {
     return <div>Blog not found</div>;
   }
+
+  const blog : Blog = blog_raw
 
   let imageList: string[] = [siteMetadata.socialBanner];
   if (blog?.image) {
@@ -149,8 +107,8 @@ export default function BlogPage({ params }: BlogPageProps) {
       <div className="mb-8 text-center relative w-full h-[70vh] bg-dark">
         <div className="w-full z-10 flex flex-col items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
           <Tag
-            name={blog.tags[0]}
-            link={`/categories/${slug(blog.tags[0])}`}
+            name={blog.tags?.[0] ?? ""}
+            link={`/categories/${slug(blog.tags?.[0] ?? "")}`}
             className="px-6 text-sm py-2"
           />
           <h1
@@ -161,12 +119,12 @@ export default function BlogPage({ params }: BlogPageProps) {
         </div>
         <div className="absolute top-0 left-0 right-0 bottom-0 h-full bg-dark/60 dark:bg-dark/40" />
         <Image
-          src={blog.image.filePath.replace("../public", "")}
+          src={blog.image?.filePath.replace("../public", "") ?? ""}
           placeholder="blur"
-          blurDataURL={blog.image.blurhashDataUrl}
+          blurDataURL={blog.image?.blurhashDataUrl ?? ""}
           alt={blog.title}
-          width={blog.image.width}
-          height={blog.image.height}
+          width={blog.image?.width ?? 0}
+          height={blog.image?.height ?? 0}
           className="aspect-square w-full h-full object-cover object-center"
           priority
           sizes="100vw"
