@@ -1,5 +1,5 @@
 import "./globals.css";
-import { cx } from "@/src/utils";
+import { cx } from "@/src/utils/index";
 import { Inter, Manrope } from "next/font/google";
 import Header from "@/src/components/Header";
 import Footer from "../components/Footer";

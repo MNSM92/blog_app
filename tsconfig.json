@@ -23,6 +23,6 @@
       "contentlayer/generated": ["./.contentlayer/generated"],
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(about)/layout.js", "src/app/(about)/contact/page.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(about)/layout.js", "src/app/(about)/contact/page.js", "src/utils/siteMetaData.js", "src/utils/index.js", "src/utils/index.js"],
   "exclude": ["node_modules"]
 }
