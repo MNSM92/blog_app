@@ -4,7 +4,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { slug } from "github-slugger";
 
-const BlogLayoutOne = ({ blog }) => {
+interface BlogLayoutOneProps {
+  blog: {
+    image: {
+      filePath: string;
+      blurhashDataUrl: string;
+      width: number;
+      height: number;
+    };
+    title: string;
+    tags: string[];
+    url: string;
+  };
+}
+
+const BlogLayoutOne: React.FC<BlogLayoutOneProps> = ({ blog }) : JSX.Element => {
   return (
     <div className="group inline-block overflow-hidden rounded-xl">
       <div
@@ -24,10 +38,12 @@ const BlogLayoutOne = ({ blog }) => {
       />
 
       <div className="w-full absolute bottom-0 p-4 xs:p-6 sm:p-10 z-20">
-        <Tag link={`/categories/${slug(blog.tags[0])}`} name={blog.tags[0]}
-        className="px-6 text-xs  sm:text-sm py-1 sm:py-2 !border "
+        <Tag
+          link={`/categories/${slug(blog.tags[0])}`}
+          name={blog.tags[0]}
+          className="px-6 text-xs sm:text-sm py-1 sm:py-2 !border"
         />
-        <Link href={blog.url} className="mt-6">
+        <Link href={blog.url} passHref>
           <h2 className="font-bold capitalize text-sm xs:text-base sm:text-xl md:text-2xl text-light mt-2 sm:mt-4">
             <span
               className="bg-gradient-to-r from-accent to-accent bg-[length:0px_6px] dark:from-accentDark/50 dark:to-accentDark/50
